@@ -24,8 +24,7 @@ function RootLayout({ children }: { children: React.ReactNode }) {
       <AppSidebar />
       <div className="flex flex-col w-screen h-screen">
         <SidebarTrigger />
-
-        <main className="flex flex-col flex-1 p-2">{children}</main>
+        <main className="flex-1 size-full overflow-hidden">{children}</main>
       </div>
     </SidebarProvider>
   );
