@@ -1,8 +1,7 @@
 import type { ApiResponse } from '@/types/api';
 import type { Column } from '../column';
 import type { ColumnRepository, CreateColumnParams } from './types';
-
-const COLUMN_STORE_NAME = 'column' as const;
+import { COLUMN_STORE_NAME } from '@/app';
 
 class IndexedDBColumnRepository implements ColumnRepository {
   constructor(private readonly db: IDBDatabase) {}
