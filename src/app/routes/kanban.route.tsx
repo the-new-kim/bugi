@@ -1,111 +1,44 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Plus } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-
-const mockData = [
-  {
-    title: 'To Do',
-    items: Array.from({ length: 15 }, (_, index) => ({
-      title: `Item ${index + 1}`,
-    })),
-  },
-  {
-    title: 'In Progress',
-    items: Array.from({ length: 0 }, (_, index) => ({
-      title: `Item ${index + 1}`,
-    })),
-  },
-  {
-    title: 'Done',
-    items: Array.from({ length: 30 }, (_, index) => ({
-      title: `Item ${index + 1}`,
-    })),
-  },
-];
+import { useService } from '@/context/service-context';
+import { useEffect, useState } from 'react';
+import { ColumnCard } from '@/features/column/components/column-card';
+import { CreateColumn } from '@/features/column/components/create-column';
+import type { Column } from '@/features/column/column';
 
 function KanbanRoute() {
-  return (
-    <div className="flex-1 size-full py-2">
-      <div className="flex flex-col gap-2 size-full [&>*]:px-2">
-        <h1>Kanban</h1>
-        <div className="flex-1 grid grid-cols-3 gap-2 overflow-auto">
-          {mockData.map((column) => (
-            <KanbanColumn key={column.title} {...column} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function KanbanColumn({
-  title,
-  items,
-}: {
-  title: string;
-  items: { title: string }[];
-}) {
-  const headerRef = useRef<HTMLDivElement>(null);
-  const [headerHeight, setHeaderHeight] = useState(0);
+  const { columnService } = useService();
+  const [columns, setColumns] = useState<Column[]>([]);
 
   useEffect(() => {
-    if (headerRef.current) {
-      setHeaderHeight(headerRef.current.offsetHeight);
-    }
-  }, []);
+    columnService.findAll().then((res) => setColumns(res.results));
+  }, [columnService]);
+
+  const handleDeleteColumn = (id: string) => {
+    columnService.delete(id).then(() => {
+      columnService.findAll().then((res) => setColumns(res.results));
+    });
+  };
 
   return (
-    <div>
-      <KanbanColumnHeader ref={headerRef}>
-        <h3>{title}</h3>
-      </KanbanColumnHeader>
-      <KanbanColumnContent headerHeight={headerHeight}>
-        {items.map((item) => (
-          <Card key={item.title}>
-            <CardContent>{item.title}</CardContent>
-          </Card>
-        ))}
-      </KanbanColumnContent>
-    </div>
-  );
-}
-
-function KanbanColumnHeader({
-  children,
-  ref,
-}: {
-  children: React.ReactNode;
-  ref?: React.Ref<HTMLDivElement>;
-}) {
-  return (
-    <div
-      className="sticky top-0 z-10 bg-background shadow-sm border-b"
-      ref={ref}
-    >
-      <div className="border border-b-0  bg-card rounded-t-xl p-2">
-        {children}
+    <div className="flex-1 size-full">
+      <div className="flex flex-col gap-2 size-full [&>*]:px-2">
+        <h1>Kanban</h1>
+        <div className="flex-1 overflow-auto pb-20 !pr-20">
+          <div className="inline-flex gap-2">
+            {columns.map((column) => (
+              <ColumnCard
+                key={column.id}
+                onDelete={() => handleDeleteColumn(column.id)}
+                {...column}
+              />
+            ))}
+            <CreateColumn
+              onSuccess={() =>
+                columnService.findAll().then((res) => setColumns(res.results))
+              }
+            />
+          </div>
+        </div>
       </div>
-    </div>
-  );
-}
-
-function KanbanColumnContent({
-  children,
-  headerHeight,
-}: {
-  children: React.ReactNode;
-  headerHeight: number;
-}) {
-  return (
-    <div
-      className="flex flex-col gap-2 p-2 sticky border border-t-0 rounded-b-xl"
-      style={{ top: `${headerHeight}px` }}
-    >
-      <div className="flex flex-col gap-2">{children}</div>
-      <Button variant="ghost" className="justify-start">
-        <Plus size={16} /> Create Task
-      </Button>
     </div>
   );
 }
